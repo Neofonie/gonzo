@@ -13,7 +13,7 @@ var (
 	ServiceName string = "unkown-service"
 	
 	// The name of the proxy-path
-	Proxy string = "unkown"
+	Proxy string = "proxy://unkown"
 )
 
 // Init Consul client
@@ -25,14 +25,14 @@ func init() {
 	}
 }
 
-func unregisterProxy() {
+func Unregister() {
 	log.Println("deregister service...")
 	if err := client.Agent().ServiceDeregister(ServiceName); err != nil {
 		log.Printf("cannot deregister proxy: %v\n", err)
 	}
 }
 
-func registerProxy() error {
+func Register() error {
 	log.Printf("Registering service '%s'\n", ServiceName)
 	check := &api.AgentServiceCheck{
 		HTTP:     "http://localhost:8080/health",
@@ -43,6 +43,6 @@ func registerProxy() error {
 		Name:  ServiceName,
 		Port:  8080,
 		Check: check,
-		Tags:  []string{"proxy://" + Proxy},
+		Tags:  []string{Proxy},
 	})
 }
