@@ -1,4 +1,4 @@
-package http
+package gonzo
 
 import "net/http"
 
