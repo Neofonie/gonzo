@@ -18,14 +18,22 @@ type AccessLogger struct {
 func (p AccessLogger) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	start := time.Now()
 	defer writeAccessLog(prepareAccessLog(r), start)
-	p.next(w, r)
+	myRW := &responseWriter{ResponseWriter: rw}
+	p.next(myRW, r)
+	accessLog["status"] = myRW.statusCode
+}
+
+// We need this to remember the status code
+type responseWriter struct {
+	http.ResponseWriter
+	statusCode int
 }
 
 /** Write the access-log to stdout */
 func writeAccessLog(accessLog map[string]string, start time.Time) {
 
 	durationMillis := float64(time.Now().Sub(start).Nanoseconds()) / 1000000.0
-	accessLog["durationMillis"] = fmt.Sprint(durationMillis)
+	accessLog["durationMillis"] = durationMillis
 
 	if result, err := json.Marshal(accessLog); err == nil {
 		log.Println(string(result))
@@ -37,18 +45,17 @@ func writeAccessLog(accessLog map[string]string, start time.Time) {
 /** Create a map with relevant access-log data */
 func prepareAccessLog(req *http.Request) map[string]string {
 
-	result := map[string]string{
-		"requestUri":    req.RequestURI,
-		"log-type":      "access",
-		"remoteAddress": req.RemoteAddr,
-		"requestMethod": req.Method,
-		"service":       "proxy",
-		"originAddress": originAddress(req),
-	}
+	result := make(map[string]interface{})
 
 	for k, v := range req.Header {
 		result[k] = strings.Join(v, ", ")
 	}
+
+	result["requestUri"] = req.RequestURI
+	result["log-type"] = "access"
+	result["remoteAddress"] = req.RemoteAddr
+	result["requestMethod"] = req.Method
+	result["originAddress"] = originAddress(req)
 
 	return result
 }
