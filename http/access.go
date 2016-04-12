@@ -2,7 +2,6 @@ package gonzo
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
 	"strings"
@@ -17,8 +16,9 @@ type AccessLogger struct {
 /** Wrap the server with the access-log */
 func (p AccessLogger) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	start := time.Now()
-	defer writeAccessLog(prepareAccessLog(r), start)
-	myRW := &responseWriter{ResponseWriter: rw}
+	accessLog := prepareAccessLog(r)
+	defer writeAccessLog(accessLog, start)
+	myRW := &responseWriter{ResponseWriter: w}
 	p.next(myRW, r)
 	accessLog["status"] = myRW.statusCode
 }
@@ -30,7 +30,7 @@ type responseWriter struct {
 }
 
 /** Write the access-log to stdout */
-func writeAccessLog(accessLog map[string]string, start time.Time) {
+func writeAccessLog(accessLog map[string]interface{}, start time.Time) {
 
 	durationMillis := float64(time.Now().Sub(start).Nanoseconds()) / 1000000.0
 	accessLog["durationMillis"] = durationMillis
@@ -43,7 +43,7 @@ func writeAccessLog(accessLog map[string]string, start time.Time) {
 }
 
 /** Create a map with relevant access-log data */
-func prepareAccessLog(req *http.Request) map[string]string {
+func prepareAccessLog(req *http.Request) map[string]interface{} {
 
 	result := make(map[string]interface{})
 
