@@ -14,12 +14,12 @@ type AccessLogger struct {
 }
 
 // Wrap the request with access logging
-func (p AccessLogger) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (p AccessLogger) ServeHTTP(w http.ResponseWriter, r *http.Request, c *Context) {
 	start := time.Now()
 	accessLog := prepareAccessLog(r)
 	defer writeAccessLog(accessLog, start)
 	myRW := &responseWriter{ResponseWriter: w}
-	p.next(myRW, r)
+	p.next(myRW, r, c)
 	accessLog["status"] = myRW.statusCode
 }
 
