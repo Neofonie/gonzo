@@ -13,7 +13,7 @@ type AccessLogger struct {
 	next func(http.ResponseWriter, *http.Request)
 }
 
-/** Wrap the server with the access-log */
+// Wrap the request with access logging
 func (p AccessLogger) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	start := time.Now()
 	accessLog := prepareAccessLog(r)
@@ -29,7 +29,7 @@ type responseWriter struct {
 	statusCode int
 }
 
-/** Write the access-log to stdout */
+// Write the access-log to stdout
 func writeAccessLog(accessLog map[string]interface{}, start time.Time) {
 
 	durationMillis := float64(time.Now().Sub(start).Nanoseconds()) / 1000000.0
@@ -42,7 +42,7 @@ func writeAccessLog(accessLog map[string]interface{}, start time.Time) {
 	}
 }
 
-/** Create a map with relevant access-log data */
+// Create a map with relevant access-log data
 func prepareAccessLog(req *http.Request) map[string]interface{} {
 
 	result := make(map[string]interface{})
@@ -60,7 +60,7 @@ func prepareAccessLog(req *http.Request) map[string]interface{} {
 	return result
 }
 
-/** Get last part of the Forwarded-For field */
+// Get last part of the Forwarded-For field
 func originAddress(req *http.Request) string {
 
 	xff := req.Header.Get("X-Forwarded-For")

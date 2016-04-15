@@ -2,14 +2,13 @@ package gonzo
 
 import "net/http"
 
-/** Handle principal calls */
 type Principal struct {
-	Next func(http.ResponseWriter, *http.Request, string)
+	next Handler
 }
 
-func (p Principal) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (p Principal) ServeHTTP(w http.ResponseWriter, r *http.Request, c *Context) {
 	if pr := r.Header.Get("X-Principal"); pr != "" {
-		p.Next(w, r, pr)
+		p.next(w, r, c)
 	} else {
 		w.WriteHeader(http.StatusForbidden)
 	}

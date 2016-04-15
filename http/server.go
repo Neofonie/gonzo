@@ -2,63 +2,69 @@ package gonzo
 
 import (
 	"fmt"
-	"log"
-	"net/http"	
 	"github.com/gorilla/mux"
+	"log"
+	"net/http"
 )
 
-type Handler func(http.ResponseWriter, *http.Request);
-
-type PrincipalHandler func(http.ResponseWriter, *http.Request, string);
-
 type MicroService struct {
-	Health func(w http.ResponseWriter, r *http.Request)	
-	muxx *mux.Router
+	Health func(w http.ResponseWriter, r *http.Request, c *Context)
+	muxx   *mux.Router
 }
 
-/** Default health check. This method can be overridden before the Start method
-    is called. */
-func ok(w http.ResponseWriter, r *http.Request) {
+type Handler func(http.ResponseWriter, *http.Request, *Context)
+
+
+// Default health check. This method can be overridden before the Start method
+// is called.
+func ok(w http.ResponseWriter, r *http.Request, c *Context) {
 	fmt.Fprintln(w, "ok")
 }
 
-/** Instantiate a new microservice */
+// Instantiate a new microservice
 func NewMicroService() *MicroService {
-    return &MicroService{
-		muxx : mux.NewRouter(),
+	return &MicroService{
+		muxx:   mux.NewRouter(),
 		Health: ok,
-	}	
+	}
 }
 
-/** Register request */
+ 
+// Wrap a Handler with AccessLogger and Principal
 func (m *MicroService) Handle(method string, path string, handler Handler) {
 	fmt.Printf("Adding resource [%s] %s\n", method, path)
-	m.muxx.Handle(path, AccessLogger{handler}).Methods(method)
+	m.muxx.Handle(path, Context {
+	    next: AccessLogger{handler}.ServeHTTP,
+	}).Methods(method)
 }
 
-/** Register principal request */
-func (m *MicroService) Principal(method string, path string, handler PrincipalHandler) {
+// Wrap a Handler with AccessLogger and Principal
+func (m *MicroService) Principal(method string, path string, handler Handler) {
 	fmt.Printf("Adding principal resource [%s] %s\n", method, path)
-	m.muxx.Handle(path, AccessLogger{Principal{handler}.ServeHTTP}).Methods(method)
+	m.muxx.Handle(path, Context{
+	    next: AccessLogger{Principal{handler}.ServeHTTP}.ServeHTTP,
+	}).Methods(method)
 }
-	
-/** Not Allowed Requests */
+
+// Handle: Not Allowed Requests
 func (ms *MicroService) NotAllowed(method string, path string) {
 	fmt.Printf("NotAllowed resource [%s] %s\n", method, path)
-	MethodNotAllowed := func (w http.ResponseWriter, r *http.Request) {	
+	MethodNotAllowed := func(w http.ResponseWriter, r *http.Request, c *Context) {
 		w.WriteHeader(http.StatusMethodNotAllowed)
 	}
-	ms.muxx.Handle(path, AccessLogger{MethodNotAllowed}).Methods(method)
+ 
+	ms.muxx.Handle(path, Context{
+	    next: AccessLogger{MethodNotAllowed}.ServeHTTP,
+	}).Methods(method)
 }
 
-
-/** Start a microservice with default health page. It uses port 8080 by
-    convention. */
+// Start a microservice with default health page. It uses port 8080 by
+// convention.
 func (ms *MicroService) Start() {
-	
+
 	// add health
 	ms.Handle("GET", "/health", ms.Health)
-	 
+
 	// start the web server
 	if err := http.ListenAndServe(":8080", ms.muxx); err != nil {
 		fmt.Println("error")

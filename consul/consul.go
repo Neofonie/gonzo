@@ -4,14 +4,14 @@ import (
 	"log"
 
 	"github.com/hashicorp/consul/api"
-) 
+)
 
 var (
 	client *api.Client
 
 	// The name of the service in Consul
 	ServiceName string = "unkown-service"
-	
+
 	// The name of the proxy-path
 	Proxy string = "proxy://unkown"
 )
