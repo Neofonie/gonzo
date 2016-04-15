@@ -10,7 +10,7 @@ import (
 
 /** Handle principal calls */
 type AccessLogger struct {
-	next Handler
+	next ContextHandler
 }
 
 // Wrap the request with access logging

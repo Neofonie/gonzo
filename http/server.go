@@ -12,7 +12,7 @@ type MicroService struct {
 	muxx   *mux.Router
 }
 
-type Handler func(http.ResponseWriter, *http.Request, *Context)
+type ContextHandler func(http.ResponseWriter, *http.Request, *Context)
 
 
 // Default health check. This method can be overridden before the Start method
@@ -31,7 +31,7 @@ func NewMicroService() *MicroService {
 
  
 // Wrap a Handler with AccessLogger and Principal
-func (m *MicroService) Handle(method string, path string, handler Handler) {
+func (m *MicroService) Handle(method string, path string, handler ContextHandler) {
 	fmt.Printf("Adding resource [%s] %s\n", method, path)
 	m.muxx.Handle(path, Context {
 	    next: AccessLogger{handler}.ServeHTTP,
@@ -39,7 +39,7 @@ func (m *MicroService) Handle(method string, path string, handler Handler) {
 }
 
 // Wrap a Handler with AccessLogger and Principal
-func (m *MicroService) Principal(method string, path string, handler Handler) {
+func (m *MicroService) Principal(method string, path string, handler ContextHandler) {
 	fmt.Printf("Adding principal resource [%s] %s\n", method, path)
 	m.muxx.Handle(path, Context{
 	    next: AccessLogger{Principal{handler}.ServeHTTP}.ServeHTTP,

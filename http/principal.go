@@ -3,7 +3,7 @@ package gonzo
 import "net/http"
 
 type Principal struct {
-	next Handler
+	next ContextHandler
 }
 
 func (p Principal) ServeHTTP(w http.ResponseWriter, r *http.Request, c *Context) {
