@@ -3,7 +3,7 @@ package gonzo
 import "net/http"
 
 type Context struct {
-	next func(http.ResponseWriter, *http.Request, *Context)	
+	next ContextHandler
 	r *http.Request
 }
 
