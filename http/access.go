@@ -10,7 +10,7 @@ import (
 
 /** Handle principal calls */
 type AccessLogger struct {
-	next func(http.ResponseWriter, *http.Request)
+	next Handler
 }
 
 // Wrap the request with access logging
