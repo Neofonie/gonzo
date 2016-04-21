@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/gorilla/mux"
 	"log"
+	"strconv"
 	"net/http"
 )
 
@@ -58,18 +59,27 @@ func (ms *MicroService) NotAllowed(method string, path string) {
 	}).Methods(method)
 }
 
-// Start a microservice with default health page. It uses port 8080 by
-// convention.
-func (ms *MicroService) Start() {
+
+// Start a microservice with default health page on the given port
+func (ms *MicroService) StartOnPort(port int) {
 
 	// add health
 	ms.Handle("GET", "/health", ms.Health)
 
 	// start the web server
-	if err := http.ListenAndServe(":8080", ms.muxx); err != nil {
+	fmt.Printf("Listening on %d....\n", port)
+	
+	if err := http.ListenAndServe(":" + strconv.Itoa(port), ms.muxx); err != nil {
 		fmt.Println("error")
 		log.Fatal("ListenAndServe:", err)
 	} else {
 		fmt.Println("running")
 	}
+}
+
+
+// Start a microservice with default health page. It uses port 8080 by
+// convention.
+func (ms *MicroService) Start() {
+ 	ms.StartOnPort(8080)
 }
