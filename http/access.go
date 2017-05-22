@@ -17,7 +17,9 @@ type AccessLogger struct {
 func (p AccessLogger) ServeHTTP(w http.ResponseWriter, r *http.Request, c *Context) {
 	start := time.Now()
 	accessLog := prepareAccessLog(r)
-	defer writeAccessLog(accessLog, start)
+	if r.RequestURI != "/health" {
+		defer writeAccessLog(accessLog, start)
+	}
 	myRW := &responseWriter{ResponseWriter: w}
 	p.next(myRW, r, c)
 	accessLog["status"] = myRW.statusCode
